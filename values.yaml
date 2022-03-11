@@ -15,7 +15,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 initContainers:
-  runInit: true
+  runInit: false
   initCommand: "wget -q -O /sql/init-swe-db.sh https://raw.githubusercontent.com/jeffrey-anderson/intro-to-kubernetes/main/swe/init-swe-db.sh 2> /dev/null"
 
 serviceAccount:
