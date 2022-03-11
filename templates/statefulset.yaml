@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "swe-api.fullname" . }}
+  labels:
+    {{- include "swe-api.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "swe-api.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "swe-api.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  minReadySeconds: 10
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "swe-api.selectorLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: init-scripts
+        emptyDir: {}          
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "swe-api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.initContainers.runInit }}
+      initContainers:
+        - name: init-sql
+          image: busybox:stable
+          volumeMounts:
+          - name: init-scripts
+            mountPath: /sql
+          command: ['sh', '-c', "{{ .Values.initContainers.initCommand }}" ]
+      {{- end }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-db-password
+                key: password
+          ports:
+          - containerPort: 5432
+            name: postgres
+          volumeMounts:
+          - name: postgres-data
+            mountPath: /var/lib/postgresql/data
+          - name: init-scripts
+            mountPath: /docker-entrypoint-initdb.d
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}         
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+      namespace: swe
+    spec:
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
