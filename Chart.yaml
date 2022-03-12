@@ -1,6 +1,7 @@
 apiVersion: v2
 name: swe-db
 description: A Helm chart for the Spring Web Essentials database
+icon: https://spankinfresh.com/images/sf-logo-50h.png
 
 # A chart can be either an 'application' or a 'library' chart.
 #

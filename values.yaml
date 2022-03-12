@@ -3,10 +3,16 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-postgresDbPassword: "VXNlLWEtQmV0dGVyLVBhc3N3MHJk"
+minReadySeconds: 10
+terminationGracePeriodSeconds: 10
+
+secret:
+  name: "postgres-db-password"
+  # NOTE: It is better security to pass the secret on the command line
+  postgresDbPassword: "VXNlLWEtQmV0dGVyLVBhc3N3MHJk"
 
 image:
-  repository: postgres
+  repository: "postgres"
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -14,8 +20,11 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+storageClassName: "standard"
+pvcRequestSize: 20Gi
 
 initContainers:
+  image: "busybox:stable"
   runInit: false
   initCommand: "wget -q -O /sql/init-swe-db.sh https://raw.githubusercontent.com/jeffrey-anderson/intro-to-kubernetes/main/swe/init-swe-db.sh 2> /dev/null"
 

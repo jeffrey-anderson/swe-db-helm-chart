@@ -39,18 +39,25 @@ helm delete perky-porcupine
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
 
-## Parameters
+__NOTE:__ The persistent volume claim is retained after the chart is uninstalled. To delete it, run the following command:
 
-| Name                      | Description                                     | Value |
+```
+kubectl delete persistentvolumeclaim postgres-data-perky-porcupine-swe-db-0
+```
+
+## Commonly Overridden Parameters
+
+| Name                      | Description                                     | Default Value |
 | ------------------------- | ----------------------------------------------- | ----- |
-| `postgresDbPassword` | base64 encoded password for the database | `VXNlLWEtQmV0dGVyLVBhc3N3MHJk`
+| `secret.postgresDbPassword` | base64 encoded password for the database | `VXNlLWEtQmV0dGVyLVBhc3N3MHJk` which decodes to "Use-a-Better-Passw0rd"
 | `initContainers.runInit` | Toggle init processing | `false` |
 | `initCommand` | Command to run when initializing the database | "wget -q -O /sql/init-swe-db.sh https://raw.githubusercontent.com/jeffrey-anderson/intro-to-kubernetes/main/swe/init-swe-db.sh 2> /dev/null" |
 | `service.type` | How the database is exposed | `NodePort` |
-| `service.port` | Cluster IP port where the database is listening | 5432 |
 | `service.nodePort` | Cluster node port port where the database is listening | 30432 |
-| `replicaCount`            | Number of replicas to run                       | `1`  |
 
+For a complete list of parameters, you can override, see [values.yaml](values.yaml)
+
+### Overriding via the Command Line
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
@@ -58,17 +65,13 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 helm install perky-porcupine --set initContainers.runInit=true jeffs-charts/swe-db
 ```
 
+### Overriding via a YAML File
+
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
 
 ```console
 helm install perky-porcupine -f values.yaml jeffs-charts/swe-db
 ```
 
-> **Tip**: You can use the default [values.yaml](values.yaml)
-
-## Configuration and installation details
-
-### [Rolling VS Immutable tags](https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/)
-
-It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
+> **Tip**: You can use the default [values.yaml](values.yaml).
 

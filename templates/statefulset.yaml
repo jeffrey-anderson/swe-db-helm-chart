@@ -10,7 +10,7 @@ spec:
       {{- include "swe-api.selectorLabels" . | nindent 6 }}
   serviceName: {{ include "swe-api.fullname" . }}
   replicas: {{ .Values.replicaCount }}
-  minReadySeconds: 10
+  minReadySeconds: {{ .Values.minReadySeconds }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "swe-api.selectorLabels" . | nindent 8 }}
     spec:
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       volumes:
       - name: init-scripts
         emptyDir: {}          
@@ -34,11 +34,13 @@ spec:
       {{- if .Values.initContainers.runInit }}
       initContainers:
         - name: init-sql
-          image: busybox:stable
+          image: {{ .Values.initContainers.image }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
           - name: init-scripts
             mountPath: /sql
-          command: ['sh', '-c', "{{ .Values.initContainers.initCommand }}" ]
+          command: ['sh', '-c', {{ .Values.initContainers.initCommand | quote }} ]
       {{- end }}
       containers:
         - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -52,10 +54,10 @@ spec:
           - name: POSTGRES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: postgres-db-password
+                name: {{ .Values.secret.name | default "postgres-db-password" }}
                 key: password
           ports:
-          - containerPort: 5432
+          - containerPort: {{ .Values.service.port }}
             name: postgres
           volumeMounts:
           - name: postgres-data
@@ -79,9 +81,9 @@ spec:
       name: postgres-data
       namespace: swe
     spec:
-      storageClassName: standard
+      storageClassName: {{ .Values.storageClassName }}
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 20Gi
+          storage: {{ .Values.pvcRequestSize }}
