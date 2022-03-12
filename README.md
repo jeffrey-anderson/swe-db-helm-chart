@@ -43,12 +43,13 @@ The command removes all the Kubernetes components associated with the chart and 
 
 | Name                      | Description                                     | Value |
 | ------------------------- | ----------------------------------------------- | ----- |
-| `replicaCount`            | Number of replicas to run                       | `1`  |
+| `postgresDbPassword` | base64 encoded password for the database | `VXNlLWEtQmV0dGVyLVBhc3N3MHJk`
 | `initContainers.runInit` | Toggle init processing | `false` |
 | `initCommand` | Command to run when initializing the database | "wget -q -O /sql/init-swe-db.sh https://raw.githubusercontent.com/jeffrey-anderson/intro-to-kubernetes/main/swe/init-swe-db.sh 2> /dev/null" |
 | `service.type` | How the database is exposed | `NodePort` |
 | `service.port` | Cluster IP port where the database is listening | 5432 |
 | `service.nodePort` | Cluster node port port where the database is listening | 30432 |
+| `replicaCount`            | Number of replicas to run                       | `1`  |
 
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,

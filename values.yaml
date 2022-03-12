@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+postgresDbPassword: "VXNlLWEtQmV0dGVyLVBhc3N3MHJk"
 
 image:
   repository: postgres
